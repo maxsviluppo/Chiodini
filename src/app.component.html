@@ -17,6 +17,12 @@
   </div>
 
   @if (state() === 'MENU') {
+    <div class="absolute top-6 right-6 z-50 animate-fade-in">
+      <button (click)="toggleSettings()" class="w-12 h-12 rounded-full bg-slate-900/40 hover:bg-slate-800/60 backdrop-blur-md border border-white/10 text-slate-400 hover:text-white transition-all flex items-center justify-center shadow-lg hover:rotate-90 active:scale-95">
+        <i class="fas fa-cog text-xl"></i>
+      </button>
+    </div>
+
     <div class="z-10 text-center max-w-6xl w-full animate-fade-in flex flex-col items-center py-16 md:py-24 px-6">
       <div class="mb-8 group">
         <span class="bg-blue-500/10 text-blue-400 px-6 py-2 rounded-full text-xs font-bold tracking-[0.3em] uppercase border border-blue-500/20 group-hover:border-blue-500/50 transition-all cursor-default">
@@ -125,6 +131,9 @@
       </div>
 
       <div class="flex flex-col items-end gap-3 pointer-events-auto">
+        <button (click)="toggleSettings()" class="group bg-slate-900/80 backdrop-blur-2xl p-4 rounded-2xl border border-white/5 hover:border-blue-500/40 transition-all shadow-2xl active:scale-90">
+          <i class="fas fa-cog text-lg text-slate-400 group-hover:text-blue-400 transition-colors group-hover:rotate-90"></i>
+        </button>
         <button (click)="resetGame()" class="group bg-slate-900/80 backdrop-blur-2xl p-4 rounded-2xl border border-white/5 hover:border-red-500/40 transition-all shadow-2xl active:scale-90">
           <i class="fas fa-arrow-left text-lg text-slate-400 group-hover:text-red-400 transition-colors"></i>
         </button>
@@ -134,22 +143,38 @@
     <!-- AREA DI GIOCO 3D -->
     <div class="w-full h-full flex items-center justify-center perspective-container overflow-visible" [class.opacity-50]="showClearConfirm()">
       <div 
-        class="board-3d relative bg-slate-300 shadow-[0_50px_120px_-20px_rgba(0,0,0,0.8)] rounded-2xl p-4 border-b-[18px] border-slate-500 ring-8 ring-white/5 will-change-transform"
+        class="board-3d relative will-change-transform"
         [style.transform]="boardRotationStyle()"
         [style.width.px]="boardPixels()"
         [style.height.px]="boardPixels()"
       >
+        <!-- Spessore della tavola (Fake 3D sides) -->
+        <div class="absolute inset-0 rounded-[2rem] bg-slate-800" style="transform: translateZ(-25px) translateY(25px);"></div>
+        <div class="absolute inset-0 rounded-[2rem] bg-slate-700" style="transform: translateZ(-20px) translateY(20px);"></div>
+        <div class="absolute inset-0 rounded-[2rem] bg-slate-600" style="transform: translateZ(-15px) translateY(15px);"></div>
+        <div class="absolute inset-0 rounded-[2rem] bg-slate-500" style="transform: translateZ(-10px) translateY(10px);"></div>
+        <div class="absolute inset-0 rounded-[2rem] bg-slate-400" style="transform: translateZ(-5px) translateY(5px);"></div>
+        
+        <!-- Superficie principale -->
+        <div class="absolute inset-0 rounded-[2rem] bg-slate-300 shadow-[inset_0_2px_15px_rgba(255,255,255,0.5),0_0_50px_rgba(0,0,0,0.2)] border-4 border-white/20" style="transform: translateZ(0);">
+            <!-- Texture rumore sottile -->
+            <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
+        </div>
+
         <!-- Griglia di fori -->
-        <div class="grid w-full h-full gap-[1px] md:gap-[2px] relative z-10" [style.grid-template-columns]="gridColumns()">
+        <div class="grid w-full h-full gap-[1px] md:gap-[2px] relative z-10 p-4" [style.grid-template-columns]="gridColumns()">
           @for (hole of holes(); track hole.id) {
             <div 
               (click)="placePeg(hole.x, hole.y)"
-              class="hole w-full h-full bg-slate-400/50 rounded-full border border-black/10 transition-all duration-300 ease-out relative overflow-visible cursor-pointer hover:bg-white/40 hover:scale-[1.35] hover:z-50 hover:shadow-[0_0_15px_rgba(255,255,255,0.5)] active:scale-100"
+              class="hole w-full h-full rounded-full transition-all duration-300 ease-out relative overflow-visible cursor-pointer hover:scale-[1.15] hover:z-50 active:scale-95"
               style="transform-style: preserve-3d; backface-visibility: hidden; -webkit-backface-visibility: hidden;"
             >
+              <!-- Ombra interna foro -->
+              <div class="absolute inset-[10%] rounded-full bg-slate-800 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.8),inset_-1px_-1px_2px_rgba(255,255,255,0.1)]"></div>
+              
               @if (isPegAt(hole.x, hole.y)) {
                 @let p = getPegAt(hole.x, hole.y);
-                <div class="absolute inset-[-20%] z-20 pointer-events-none" style="transform: translateZ(0);">
+                <div class="absolute inset-[2%] z-20 pointer-events-none" style="transform: translateZ(0);">
                    <app-peg-element [color]="p!.color" />
                 </div>
               }
@@ -159,7 +184,7 @@
 
         <!-- Overlay immagine guida (Sopra per effetto trasparenza ricalco) -->
         @if (guideImage() && showGuide()) {
-          <div class="absolute inset-4 z-30 opacity-40 pointer-events-none rounded-lg overflow-hidden animate-fade-in transition-opacity duration-500">
+          <div class="absolute inset-4 z-30 opacity-40 pointer-events-none rounded-lg overflow-hidden animate-fade-in transition-opacity duration-500" style="transform: translateZ(1px);">
             <img [src]="guideImage()" 
                  class="w-full h-full object-cover mix-blend-multiply guide-image-render" 
                  alt="Guida">
@@ -168,7 +193,7 @@
 
         <!-- Overlay Target Pattern (Challenge Mode) -->
         @if (mode() === 'CHALLENGE' && showTarget()) {
-          <div class="absolute inset-0 z-50 bg-slate-900/90 backdrop-blur-sm flex items-center justify-center rounded-2xl animate-fade-in pointer-events-none">
+          <div class="absolute inset-0 z-50 bg-slate-900/90 backdrop-blur-sm flex items-center justify-center rounded-[2rem] animate-fade-in pointer-events-none" style="transform: translateZ(50px);">
             <div class="relative w-full h-full p-4">
               <div class="grid w-full h-full gap-[1px]" [style.grid-template-columns]="gridColumns()">
                 @for (hole of holes(); track hole.id) {
@@ -188,59 +213,6 @@
         }
       </div>
     </div>
-
-    <!-- TOAST MODALE DI CONFERMA CANCELLAZIONE -->
-    @if (showClearConfirm()) {
-      <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-        <div class="bg-slate-900/90 border border-white/10 backdrop-blur-3xl p-8 rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.8)] max-w-sm w-full text-center scale-up">
-          <div class="w-20 h-20 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl animate-pulse">
-            <i class="fas fa-trash-can"></i>
-          </div>
-          <h2 class="text-2xl font-black text-white mb-2 tracking-tight">Svuota Tavola</h2>
-          <p class="text-slate-400 mb-8 leading-relaxed">Sei sicuro di voler rimuovere tutti i chiodini? Questa azione non può essere annullata.</p>
-          <div class="flex flex-col gap-3">
-            <button (click)="confirmClear()" class="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-black rounded-2xl transition-all shadow-[0_0_20px_rgba(220,38,38,0.3)] active:scale-95">
-              CANCELLA TUTTO
-            </button>
-            <button (click)="cancelClear()" class="w-full py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-2xl transition-all active:scale-95">
-              ANNULLA
-            </button>
-          </div>
-        </div>
-      </div>
-    }
-
-    <!-- MODALE GAME OVER / VITTORIA -->
-    @if (state() === 'GAME_OVER') {
-      <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-        <div class="bg-slate-900/90 border border-white/10 backdrop-blur-3xl p-10 rounded-[3rem] shadow-[0_30px_100px_rgba(0,0,0,0.8)] max-w-md w-full text-center scale-up relative overflow-hidden">
-          
-          <!-- Confetti effect if win -->
-          @if (gameMessage()?.includes('VITTORIA')) {
-            <div class="absolute inset-0 pointer-events-none">
-              <div class="absolute top-0 left-1/4 w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
-              <div class="absolute top-10 right-1/4 w-3 h-3 bg-blue-500 rounded-full animate-bounce"></div>
-              <div class="absolute bottom-10 left-1/3 w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-            </div>
-          }
-
-          <div class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 text-4xl animate-bounce shadow-2xl"
-               [class.bg-green-500/20]="gameMessage()?.includes('VITTORIA')"
-               [class.text-green-500]="gameMessage()?.includes('VITTORIA')"
-               [class.bg-red-500/20]="!gameMessage()?.includes('VITTORIA')"
-               [class.text-red-500]="!gameMessage()?.includes('VITTORIA')">
-            <i class="fas" [class.fa-trophy]="gameMessage()?.includes('VITTORIA')" [class.fa-times-circle]="!gameMessage()?.includes('VITTORIA')"></i>
-          </div>
-          
-          <h2 class="text-4xl font-black text-white mb-4 tracking-tighter">{{ gameMessage()?.includes('VITTORIA') ? 'LIVELLO COMPLETATO!' : 'GAME OVER' }}</h2>
-          <p class="text-slate-400 mb-10 text-lg font-medium">{{ gameMessage() }}</p>
-          
-          <button (click)="resetGame()" class="w-full py-5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-black rounded-2xl transition-all shadow-lg hover:shadow-blue-500/30 active:scale-95 text-xl tracking-wide">
-            TORNA AL MENU
-          </button>
-        </div>
-      </div>
-    }
 
     <!-- ISOLA STRUMENTI -->
     <div class="fixed bottom-10 z-50 w-full max-w-6xl px-6 animate-slide-up-floating" [class.pointer-events-none]="showClearConfirm()">
@@ -311,6 +283,100 @@
     </div>
   }
 
+  <!-- MODALE IMPOSTAZIONI -->
+  @if (settingsOpen()) {
+    <div class="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+      <div class="bg-slate-900/90 border border-white/10 backdrop-blur-3xl p-8 rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.8)] max-w-sm w-full scale-up">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-2xl font-black text-white tracking-tight">IMPOSTAZIONI</h2>
+          <button (click)="toggleSettings()" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="space-y-6">
+          <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                <i class="fas" [class.fa-volume-high]="!audioService.muted()" [class.fa-volume-xmark]="audioService.muted()"></i>
+              </div>
+              <div>
+                <div class="font-bold text-white">Effetti Sonori</div>
+                <div class="text-xs text-slate-400 font-mono">{{ audioService.muted() ? 'DISATTIVATI' : 'ATTIVI' }}</div>
+              </div>
+            </div>
+            
+            <button (click)="audioService.toggleMute()" 
+                    class="relative w-14 h-8 rounded-full transition-colors duration-300 focus:outline-none"
+                    [class.bg-blue-600]="!audioService.muted()"
+                    [class.bg-slate-700]="audioService.muted()">
+              <div class="absolute top-1 left-1 bg-white w-6 h-6 rounded-full transition-transform duration-300 shadow-md"
+                   [class.translate-x-6]="!audioService.muted()"
+                   [class.translate-x-0]="audioService.muted()"></div>
+            </button>
+          </div>
+        </div>
+        
+        <div class="mt-8 text-center">
+          <p class="text-xs text-slate-600 font-mono">VERSIONE 1.2.0 • CHIODINI 3D</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- TOAST MODALE DI CONFERMA CANCELLAZIONE -->
+  @if (showClearConfirm()) {
+    <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+      <div class="bg-slate-900/90 border border-white/10 backdrop-blur-3xl p-8 rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.8)] max-w-sm w-full text-center scale-up">
+        <div class="w-20 h-20 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl animate-pulse">
+          <i class="fas fa-trash-can"></i>
+        </div>
+        <h2 class="text-2xl font-black text-white mb-2 tracking-tight">Svuota Tavola</h2>
+        <p class="text-slate-400 mb-8 leading-relaxed">Sei sicuro di voler rimuovere tutti i chiodini? Questa azione non può essere annullata.</p>
+        <div class="flex flex-col gap-3">
+          <button (click)="confirmClear()" class="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-black rounded-2xl transition-all shadow-[0_0_20px_rgba(220,38,38,0.3)] active:scale-95">
+            CANCELLA TUTTO
+          </button>
+          <button (click)="cancelClear()" class="w-full py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-2xl transition-all active:scale-95">
+            ANNULLA
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODALE GAME OVER / VITTORIA -->
+  @if (state() === 'GAME_OVER') {
+    <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+      <div class="bg-slate-900/90 border border-white/10 backdrop-blur-3xl p-10 rounded-[3rem] shadow-[0_30px_100px_rgba(0,0,0,0.8)] max-w-md w-full text-center scale-up relative overflow-hidden">
+        
+        <!-- Confetti effect if win -->
+        @if (gameMessage()?.includes('VITTORIA')) {
+          <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute top-0 left-1/4 w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
+            <div class="absolute top-10 right-1/4 w-3 h-3 bg-blue-500 rounded-full animate-bounce"></div>
+            <div class="absolute bottom-10 left-1/3 w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+          </div>
+        }
+
+        <div class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 text-4xl animate-bounce shadow-2xl"
+             [class.bg-green-500/20]="gameMessage()?.includes('VITTORIA')"
+             [class.text-green-500]="gameMessage()?.includes('VITTORIA')"
+             [class.bg-red-500/20]="!gameMessage()?.includes('VITTORIA')"
+             [class.text-red-500]="!gameMessage()?.includes('VITTORIA')">
+          <i class="fas" [class.fa-trophy]="gameMessage()?.includes('VITTORIA')" [class.fa-times-circle]="!gameMessage()?.includes('VITTORIA')"></i>
+        </div>
+        
+        <h2 class="text-4xl font-black text-white mb-4 tracking-tighter">{{ gameMessage()?.includes('VITTORIA') ? 'LIVELLO COMPLETATO!' : 'GAME OVER' }}</h2>
+        <p class="text-slate-400 mb-10 text-lg font-medium">{{ gameMessage() }}</p>
+        
+        <button (click)="resetGame()" class="w-full py-5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-black rounded-2xl transition-all shadow-lg hover:shadow-blue-500/30 active:scale-95 text-xl tracking-wide">
+          TORNA AL MENU
+        </button>
+      </div>
+    </div>
+  }
+
 </div>
 
 <style>
@@ -344,14 +410,12 @@
     transition: transform 0.1s ease-out; 
     transform-style: preserve-3d; 
     will-change: transform;
-    backface-visibility: hidden;
   }
   
   .hole { 
     transform: translateZ(0); 
     transform-style: preserve-3d; 
-    backface-visibility: hidden;
-    will-change: transform, background-color, box-shadow;
+    will-change: transform;
   }
   
   .guide-image-render {

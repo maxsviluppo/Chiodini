@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Peg, Level, GameState, GameMode, COLORS } from './models/game.models';
 import { PegElementComponent } from './components/peg-element.component';
 import { AIService } from './services/ai.service';
+import { AudioService } from './services/audio.service';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,7 @@ import { AIService } from './services/ai.service';
 })
 export class AppComponent {
   private aiService = inject(AIService);
+  public audioService = inject(AudioService);
 
   state = signal<GameState>('MENU');
   mode = signal<GameMode>('FREE');
@@ -21,6 +23,7 @@ export class AppComponent {
   selectedColor = signal(COLORS[0].hex);
   placedPegs = signal<Peg[]>([]);
   showClearConfirm = signal(false);
+  settingsOpen = signal(false);
   
   // Immagine guida
   guideImage = signal<string | null>(null);
@@ -135,14 +138,16 @@ export class AppComponent {
       const bonus = this.timeLeft() * 10;
       this.score.update(s => s + this.currentLevel()!.bonusPoints + bonus);
       this.gameMessage.set(`VITTORIA! Punti: ${this.score()}`);
-      // Play win sound or effect
+      this.audioService.playWin();
     } else {
       this.gameMessage.set('TEMPO SCADUTO!');
+      this.audioService.playLose();
     }
     this.state.set('GAME_OVER');
   }
 
   toggleTargetView() {
+    this.audioService.playClick();
     this.showTarget.update(v => !v);
   }
 
@@ -348,12 +353,14 @@ export class AppComponent {
       const existing = this.placedPegs()[existingIndex];
       if (existing.color === this.selectedColor()) {
         this.placedPegs.update(pegs => pegs.filter((_, i) => i !== existingIndex));
+        this.audioService.playRemove();
       } else {
         this.placedPegs.update(pegs => {
           const updated = [...pegs];
           updated[existingIndex] = { ...updated[existingIndex], color: this.selectedColor() };
           return updated;
         });
+        this.audioService.playPop();
       }
       return;
     }
@@ -364,6 +371,7 @@ export class AppComponent {
       color: this.selectedColor()
     };
     this.placedPegs.update(pegs => [...pegs, newPeg]);
+    this.audioService.playPop();
     
     if (this.mode() === 'CHALLENGE') {
       this.checkSolution();
@@ -394,6 +402,11 @@ export class AppComponent {
 
   cancelClear() {
     this.showClearConfirm.set(false);
+  }
+
+  toggleSettings() {
+    this.audioService.playClick();
+    this.settingsOpen.update(v => !v);
   }
 
   resetGame() {
