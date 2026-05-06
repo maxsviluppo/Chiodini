@@ -1,9 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="/">
   <title>Chiodini 3D Master</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -15,54 +15,7 @@
       font-family: 'Inter', sans-serif;
       overflow: hidden;
     }
-    .perspective-container {
-      perspective: 1000px;
-    }
-    .board-3d {
-      transform-style: preserve-3d;
-      transition: transform 0.5s ease-out;
-    }
-    .peg-3d {
-      transform-style: preserve-3d;
-      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .peg-top {
-      transform: translateZ(12px);
-    }
-    .peg-side {
-      position: absolute;
-      background: rgba(0,0,0,0.2);
-    }
-    .hole {
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-    }
-    @keyframes bounce-in {
-      0% { transform: scale(0) translateZ(50px); opacity: 0; }
-      100% { transform: scale(1) translateZ(12px); opacity: 1; }
-    }
-    .animate-peg-drop {
-      animation: bounce-in 0.3s forwards;
-    }
   </style>
-<script type="importmap">
-{
-  "imports": {
-    "rxjs": "https://esm.sh/rxjs@^7.8.2?conditions=es2015",
-    "rxjs/operators": "https://esm.sh/rxjs@^7.8.2/operators?conditions=es2015",
-    "rxjs/ajax": "https://esm.sh/rxjs@^7.8.2/ajax?conditions=es2015",
-    "rxjs/webSocket": "https://esm.sh/rxjs@^7.8.2/webSocket?conditions=es2015",
-    "rxjs/testing": "https://esm.sh/rxjs@^7.8.2/testing?conditions=es2015",
-    "rxjs/fetch": "https://esm.sh/rxjs@^7.8.2/fetch?conditions=es2015",
-    "@google/genai": "https://esm.sh/@google/genai@^1.41.0?external=rxjs",
-    "@angular/compiler": "https://esm.sh/@angular/compiler@^21.1.4?external=rxjs",
-    "@angular/core": "https://esm.sh/@angular/core@^21.1.4?external=rxjs",
-    "@angular/common": "https://esm.sh/@angular/common@^21.1.4?external=rxjs",
-    "@angular/platform-browser": "https://esm.sh/@angular/platform-browser@^21.1.4?external=rxjs"
-  }
-}
-</script>
-
-<script type="module" src="/index.tsx"></script>
 </head>
 <body>
   <app-root></app-root>
